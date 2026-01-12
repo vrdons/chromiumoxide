@@ -26,24 +26,21 @@ impl<R: Read + Seek> DerefMut for ZipArchive<R> {
 
 impl<R: Read + Seek> ZipArchive<R> {
     pub fn new(reader: R) -> ZipResult<Self> {
-        zip::ZipArchive::new(reader).map(|z| Self(z))
+        zip::ZipArchive::new(reader).map(Self)
     }
 
-    /// We need this custom extract function to support symlinks.
-    /// This is based on https://github.com/zip-rs/zip/pull/213.
-    ///
-    /// We must be careful with this implementation since it is not
-    /// protected against malicious symlinks, but we trust the binaries
-    /// provided by chromium.
     pub fn extract<P: AsRef<Path>>(&mut self, directory: P) -> ZipResult<()> {
         use std::fs;
-        for i in 0..self.len() {
-            let mut file = self.by_index(i)?;
+        for i in 0..self.0.len() {
+            let mut file = self.0.by_index(i)?;
+
             let filepath = file
                 .enclosed_name()
-                .ok_or(ZipError::InvalidArchive("Invalid file path"))?;
-            let outpath = directory.as_ref().join(filepath);
-            if file.name().ends_with('/') {
+                .ok_or(ZipError::InvalidArchive("Invalid file path".into()))?
+                .to_owned();
+            let outpath = directory.as_ref().join(&filepath);
+
+            if file.is_dir() {
                 fs::create_dir_all(&outpath)?;
             } else {
                 if let Some(p) = outpath.parent() {
@@ -76,7 +73,7 @@ impl<R: Read + Seek> ZipArchive<R> {
     }
 }
 
-fn read_symlink(entry: &mut ZipFile<'_>) -> ZipResult<Option<Vec<u8>>> {
+fn read_symlink<'a, R: Read + Seek>(entry: &mut ZipFile<'a, R>) -> ZipResult<Option<Vec<u8>>> {
     if let Some(mode) = entry.unix_mode() {
         const S_IFLNK: u32 = 0o120000; // symbolic link
         if mode & S_IFLNK == S_IFLNK {
@@ -102,7 +99,7 @@ fn create_symlink(link_target: Vec<u8>, link_path: &Path) -> ZipResult<()> {
 fn create_symlink(link_target: Vec<u8>, link_path: &Path) -> ZipResult<()> {
     // Only supports UTF-8 paths which is enough for our usecase
     let link_target = String::from_utf8(link_target)
-        .map_err(|_| ZipError::InvalidArchive("Invalid synmlink target name"))?;
+        .map_err(|_| ZipError::InvalidArchive("Invalid symlink target name".into()))?;
     std::os::windows::fs::symlink_file(link_target, link_path)?;
 
     Ok(())
