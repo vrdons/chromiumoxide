@@ -4,6 +4,7 @@ use std::pin::Pin;
 use std::sync::Arc;
 use std::task::{Context, Poll};
 
+use chromiumoxide_types::ClickOptions;
 use futures::{future, Future, FutureExt, Stream};
 
 use chromiumoxide_cdp::cdp::browser_protocol::dom::{
@@ -267,7 +268,20 @@ impl Element {
     /// not exist anymore.
     pub async fn click(&self) -> Result<&Self> {
         let center = self.scroll_into_view().await?.clickable_point().await?;
-        self.tab.click(center).await?;
+        self.tab.click(center, ClickOptions::default()).await?;
+        Ok(self)
+    }
+
+    /// Clicks the element using the provided [`ClickOptions`].
+    ///
+    /// This behaves the same as [`click()`], but allows customizing
+    /// click behavior such as click count.
+    ///
+    /// Note that if the click triggers a navigation, this element
+    /// may no longer exist afterwards.
+    pub async fn click_with(&self,options: ClickOptions) -> Result<&Self> {
+        let center = self.scroll_into_view().await?.clickable_point().await?;
+        self.tab.click(center, options).await?;
         Ok(self)
     }
 

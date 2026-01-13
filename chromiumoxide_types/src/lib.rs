@@ -266,3 +266,50 @@ impl From<String> for Binary {
         Self(expr)
     }
 }
+
+#[derive(Clone, Debug)]
+pub struct ClickOptions {
+    pub click_count: i64,
+}
+
+impl Default for ClickOptions {
+    fn default() -> Self {
+        Self { click_count: 1 }
+    }
+}
+
+impl ClickOptions {
+    pub fn new() -> Self {
+        Self::default()
+    }
+    pub fn builder() -> ClickOptionsBuilder {
+        ClickOptionsBuilder::default()
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct ClickOptionsBuilder {
+    click_count: i64,
+}
+
+impl Default for ClickOptionsBuilder {
+    fn default() -> Self {
+        Self { click_count: 1 }
+    }
+}
+
+impl ClickOptionsBuilder {
+    pub fn new() -> Self {
+        Self::default()
+    }
+    pub fn click_count(mut self, count: impl Into<i64>) -> Self {
+        self.click_count = count.into();
+        self
+    }
+
+    pub fn build(self) -> ClickOptions {
+        ClickOptions {
+            click_count: self.click_count,
+        }
+    }
+}
