@@ -523,7 +523,7 @@ impl Page {
     ///
     ///
     /// Use [`click_with()`] to perform a custom click:
-    /// 
+    ///
     /// ```no_run
     /// # use chromiumoxide::page::Page;
     /// # use chromiumoxide::error::Result;
@@ -543,7 +543,7 @@ impl Page {
     ///
     /// For advanced use cases, the same behavior can be achieved manually by
     /// issuing `DispatchMouseEventParams` commands directly via the CDP API.
-    /// 
+    ///
     /// ```no_run
     /// # use chromiumoxide::page::Page;
     /// # use chromiumoxide::error::Result;
@@ -576,7 +576,7 @@ impl Page {
     /// # }
     /// ```
     pub async fn click(&self, point: Point) -> Result<&Self> {
-        self.inner.click(point, ClickOptions::default()).await?;
+        self.inner.click(point).await?;
         Ok(self)
     }
 
@@ -615,12 +615,8 @@ impl Page {
     ///     # Ok(())
     /// # }
     /// ```
-    pub async fn click_with(
-        &self,
-        point: Point,
-        options: ClickOptions,
-    ) -> Result<&Self> {
-        self.inner.click(point, options).await?;
+    pub async fn click_with(&self, point: Point, options: ClickOptions) -> Result<&Self> {
+        self.inner.click_with(point, options).await?;
         Ok(self)
     }
 
@@ -1474,4 +1470,3 @@ impl From<MediaTypeParams> for String {
         }
     }
 }
-

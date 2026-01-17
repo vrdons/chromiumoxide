@@ -268,7 +268,7 @@ impl Element {
     /// not exist anymore.
     pub async fn click(&self) -> Result<&Self> {
         let center = self.scroll_into_view().await?.clickable_point().await?;
-        self.tab.click(center, ClickOptions::default()).await?;
+        self.tab.click(center).await?;
         Ok(self)
     }
 
@@ -279,9 +279,9 @@ impl Element {
     ///
     /// Note that if the click triggers a navigation, this element
     /// may no longer exist afterwards.
-    pub async fn click_with(&self,options: ClickOptions) -> Result<&Self> {
+    pub async fn click_with(&self, options: ClickOptions) -> Result<&Self> {
         let center = self.scroll_into_view().await?.clickable_point().await?;
-        self.tab.click(center, options).await?;
+        self.tab.click_with(center, options).await?;
         Ok(self)
     }
 
